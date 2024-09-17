@@ -1,0 +1,11 @@
+find . -name "*.class" -delete
+
+executar compilar:
+Restaurante$ javac -cp "lib/*" src/com/restaurante/cliente/Cliente.java src/com/restaurante/servidor/Servidor.java src/com/restaurante/modelo/*.java
+
+executar servidor:
+Restaurante$ java -cp "lib/*:src" com.restaurante.servidor.Servidor
+Servidor iniciado e aguardando conexões...
+
+executar cliente:
+Restaurante$ java -cp "lib/*:src" com.restaurante.cliente.Cliente
