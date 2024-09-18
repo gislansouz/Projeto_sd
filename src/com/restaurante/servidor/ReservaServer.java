@@ -13,6 +13,7 @@ public class ReservaServer {
     private static final Gson gson = new Gson();
     private static final Map<String, String> responseHistory = new HashMap<>(); // Histórico de respostas
     static Despachante despachante;
+    static String requestId="";
 
     public static void main(String[] args) {
         DatagramSocket socket = null;
@@ -32,18 +33,18 @@ public class ReservaServer {
                 String response = processRequest(requestData);
 
                 // Prevenir duplicatas
-                if (!responseHistory.containsKey(requestData)) {
-                    responseHistory.put(requestData, response);
+                if (!responseHistory.containsKey(requestId)) {
+                    responseHistory.put(requestId, response);
                     sendResponse(socket, response, receivePacket.getAddress(), receivePacket.getPort());
                 } else {
-                        if(!responseHistory.get(requestData).equals(response)){
-                            responseHistory.put(requestData, response);
-                            sendResponse(socket, response, receivePacket.getAddress(), receivePacket.getPort());
-                        }
-                        else{
-                            sendResponse(socket, "Requisição duplicada", receivePacket.getAddress(), receivePacket.getPort()); 
-                        }
-                    }
+                    String respostaduplicada =responseHistory.get(requestId);
+                    sendResponse(socket, respostaduplicada, receivePacket.getAddress(), receivePacket.getPort());
+                }
+                // Limite do tamanho do cache (por exemplo, manter as últimas 5 requisições)
+                if (responseHistory.size() > 5) {
+                    responseHistory.remove(responseHistory.keySet().iterator().next());  // Remover o mais antigo
+                }
+
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -61,7 +62,7 @@ public class ReservaServer {
             jsonRequest = gson.fromJson(requestData, JsonObject.class);
             String command = jsonRequest.get("methodName").getAsString();
             String objname = jsonRequest.get("objName").getAsString();
-            System.out.println(command);
+            requestId = jsonRequest.get("requestId").getAsString();
             String resultado = despachante.SelecionarEsqueleto("com.restaurante.servidor.esqueletos."+objname+"Esqueleto", command.toLowerCase(), requestData);
             return resultado;
         } catch (Exception e) {
@@ -70,13 +71,15 @@ public class ReservaServer {
     }
 
     private static void sendResponse(DatagramSocket socket, String response, InetAddress clientAddress, int clientPort) throws Exception {
-        JsonObject jsonresponse = new JsonObject();
-        jsonresponse.addProperty("messagetype", "Reply");
-        jsonresponse.addProperty("response", response);
-        String reply=gson.toJson(jsonresponse);
+        JsonObject jsonResponse = new JsonObject();
+        jsonResponse = gson.fromJson(response, JsonObject.class);
+        jsonResponse.addProperty("requestId", requestId);
+        
+        String reply=gson.toJson(jsonResponse);
 
         byte[] sendBuffer = reply.getBytes();
         DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, clientAddress, clientPort);
         socket.send(sendPacket);
+        System.out.println("resposta enviada");
     }
 }

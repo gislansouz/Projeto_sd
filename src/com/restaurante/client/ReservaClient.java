@@ -78,13 +78,13 @@ public class ReservaClient {
         String tipoDeRefeicao = scanner.nextLine();
 
         List<String> preferenciasAlimentares = new ArrayList<>();
+
         System.out.print("Digite as preferências alimentares (separadas por vírgula): ");
         String preferenciasInput = scanner.nextLine();
         String[] preferenciasArray = preferenciasInput.split(",");
         for (String pref : preferenciasArray) {
             preferenciasAlimentares.add(pref.trim());
         }
-
         Reserva reserva = new Reserva(alunoId, " " ,converteData(data), tipoDeRefeicao, preferenciasAlimentares);
 
         // Criação da mensagem JSON
