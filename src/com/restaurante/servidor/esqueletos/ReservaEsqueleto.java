@@ -13,11 +13,22 @@ public class ReservaEsqueleto {
     private static final Gson gson = new Gson();
 
 	public String add(String args) {
+        String resultado="";
         // (1) Desempacota argumento de entrada
         Random random = new Random();
         JsonObject jsonRequest = gson.fromJson(args, JsonObject.class);
         JsonObject argsJson = jsonRequest.getAsJsonObject("args");
         JsonObject reservaJson = argsJson.getAsJsonObject("reserva");
+        
+        //verificação ser algum dos campos está nulo
+        if (reservaJson == null ||
+        reservaJson.get("alunoId").getAsString().isEmpty() || 
+        reservaJson.get("data").getAsString().isEmpty() ||
+        reservaJson.get("tipoRefeicao").getAsString().isEmpty() ||
+        reservaJson.getAsJsonArray("preferenciasAlimentares").isEmpty()) {
+            resultado= "Erro: Um ou mais campos obrigatórios estão ausentes ou são nulos.";
+        }else{
+
         Reserva reserva = new Reserva(
             reservaJson.get("alunoId").getAsString(),
             Integer.toString(random.nextInt(10000)),
@@ -26,50 +37,45 @@ public class ReservaEsqueleto {
             JSONArrayToList(reservaJson.getAsJsonArray("preferenciasAlimentares"))
             );
 		// (2) chama o metodo do servente
-        String resultado=reserva.salvarReserva()+reserva.getReservaId();
+       resultado=reserva.salvarReserva()+" - "+reserva.getReservaId();
+
+        }
 		// (3) empacota resposta do método servente e retorna
-        JsonObject jsonResponse = new JsonObject();
-        jsonResponse.addProperty("messageType", "Reply");
-        jsonResponse.addProperty("requestId", " ");
-        jsonResponse.addProperty("objName", "Reserva");
-        jsonResponse.addProperty("methodName", "ADD");
-        jsonResponse.addProperty("args", resultado);
-        return gson.toJson(jsonResponse);
+        return resultado;
 	}
 
 	public String list(String args) {
+        String resultado="";
 		// (1) Desempacota argumento de entrada
         JsonObject jsonRequest = gson.fromJson(args, JsonObject.class);
         JsonObject argsJson = jsonRequest.getAsJsonObject("args");
+        if (argsJson.get("alunoId").getAsString().isEmpty()){
+            resultado= "Erro: Um ou mais campos obrigatórios estão ausentes ou são nulos.";
+        }else{
         String alunoId = argsJson.get("alunoId").getAsString();
 		// (2) chama o metodo do servente
-        String resultado = Reserva.listarReservas(alunoId);
+        resultado = Reserva.listarReservas(alunoId);
+        }
 		// (3) empacota resposta do método servente e retorna
-        JsonObject jsonResponse = new JsonObject();
-        jsonResponse.addProperty("messageType", "Reply");
-        jsonResponse.addProperty("requestId", " ");
-        jsonResponse.addProperty("objName", "Reserva");
-        jsonResponse.addProperty("methodName", "LIST");
-        jsonResponse.addProperty("args", resultado);
-        return gson.toJson(jsonResponse);
+
+        return resultado;
 	}
 
 	public String remove(String args) {
+        String resultado="";
 		// (1) Desempacota argumento de entrada
         JsonObject jsonRequest = gson.fromJson(args, JsonObject.class);
         JsonObject argsJson = jsonRequest.getAsJsonObject("args");
+        if (argsJson.get("reservaId").getAsString().isEmpty() || argsJson.get("alunoId").getAsString().isEmpty()){
+            resultado= "Erro: Um ou mais campos obrigatórios estão ausentes ou são nulos.";
+        }else{
         String reservaId = argsJson.get("reservaId").getAsString();
+        String alunoId =argsJson.get("alunoId").getAsString();
 		// (2) chama o metodo do servente
-        String resultado= Reserva.removerReserva(reservaId);
-
+        resultado= Reserva.removerReserva(alunoId,reservaId);
+        }
 		// (3) empacota resposta do método servente e retorna
-        JsonObject jsonResponse = new JsonObject();
-        jsonResponse.addProperty("messageType", "Reply");
-        jsonResponse.addProperty("requestId", " ");
-        jsonResponse.addProperty("objName", "Reserva");
-        jsonResponse.addProperty("methodName", "REMOVE");
-        jsonResponse.addProperty("args", resultado);
-        return gson.toJson(jsonResponse);
+        return resultado;
 	}
 
      private static List<String> JSONArrayToList(JsonArray jsonArray) {

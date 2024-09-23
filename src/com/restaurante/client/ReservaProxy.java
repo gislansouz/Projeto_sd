@@ -1,4 +1,5 @@
 package com.restaurante.client;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 
 import com.google.gson.Gson;
@@ -7,7 +8,7 @@ import com.google.gson.JsonObject;
 import com.restaurante.client.Reserva;
 
 public class ReservaProxy {
-	int requestiId = 0;
+	int requestId = 0;
 	private static final Gson gson = new Gson();
 
 	public String list(String alunoId) {
@@ -19,9 +20,6 @@ public class ReservaProxy {
 		String response=doOperation("Reserva","LIST",jsonRequest);
 		// (3) Desempacota argumento de resposta (retorno de doOperation)
 		// (4) Retorna reposta desempacotada
-		// ex:
-		// addressBook = AddressBook.parseFrom(doOperation("AddressBook",
-		// "list", listPessoa.build().toByteArray()));
         return response;
 	}
 
@@ -54,29 +52,37 @@ public class ReservaProxy {
 	public String doOperation(String objectRef, String method, JsonElement args) {
 		UDPClient udpClient = new UDPClient("localhost", 9876);
 		String data = empacotaMensagem(objectRef, method, args);
-		String resposta="";
-		try {
-			// envio
-			udpClient.sendRequest(data);
-			// recebimento
-			resposta = desempacotaMensagem(udpClient.getReply(udpClient.socket));
-			requestiId++;
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		String resposta = "";
+		int tentativas = 0;
+		boolean sucesso = false;
+	
+		while (tentativas <= 5 && !sucesso) {
+			try {
+				// envio
+				udpClient.sendRequest(data);
+				// recebimento
+				resposta = desempacotaMensagem(udpClient.getReply(udpClient.socket));
+				sucesso = true; // Se a resposta for recebida, marca como sucesso
+			} catch (SocketTimeoutException e) {
+				tentativas++;
+				System.out.println("Tentativa " + tentativas + " falhou devido a timeout.");
+				if (tentativas == 5) {
+					return "Servidor inalcançável";
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				return "Erro desconhecido: " + e.getMessage();
+			}
 		}
-
-		// recebimento
-
+	
 		return resposta;
-
 	}
 
     private String empacotaMensagem(String objectRef, String method, JsonElement args) {
 		// empacota a Mensagem de requisicao
         JsonObject jsonRequest = new JsonObject();
         jsonRequest.addProperty("messageType", "Request");
-        jsonRequest.addProperty("requestId", requestiId);
+        jsonRequest.addProperty("requestId", requestId);
         jsonRequest.addProperty("objName", objectRef);
         jsonRequest.addProperty("methodName", method);
         jsonRequest.add("args", args);
@@ -87,6 +93,7 @@ public class ReservaProxy {
 		// desempacota a mensagem de resposta
         JsonObject jsonResponse = gson.fromJson(resposta, JsonObject.class);
         String response = jsonResponse.get("args").getAsString();
+		requestId++;
         return response;
 	}
 }

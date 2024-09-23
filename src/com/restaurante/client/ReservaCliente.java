@@ -23,20 +23,9 @@ public class ReservaCliente {
 		Scanner scanner = new Scanner(System.in);
 		switch (operacao) {
 		case 1:
-
-			// Interagir com o usuario via stdin.readLine() para setar
-			// argumentos de entada
-			// ex:
-			// System.out.println("Digite seu nome: ");
-			// person.setName(stdin.readLine());
-
-			// Por fim, chamar metodo do proxy correspondente à operação
-			// escolhida
-			// proxy.addPerson(person.build());
 		System.out.print("Digite o ID do aluno: ");
         String alunoId = scanner.nextLine();
-        System.out.print("Digite a data (dia/mes/ano hora:minuto): ");
-        String data = scanner.nextLine();
+		Date dataValida = solicitarData();
         System.out.print("Digite o tipo de refeição: ");
         String tipoDeRefeicao = scanner.nextLine();
         List<String> preferenciasAlimentares = new ArrayList<>();
@@ -46,15 +35,15 @@ public class ReservaCliente {
         for (String pref : preferenciasArray) {
             preferenciasAlimentares.add(pref.trim());
         }
-        Reserva reserva = new Reserva(alunoId, " " ,converteData(data), tipoDeRefeicao, preferenciasAlimentares);
+        Reserva reserva = new Reserva(alunoId, " " , dataValida, tipoDeRefeicao, preferenciasAlimentares);
 		System.out.println(proxy.add(reserva));
 			break;
 
 		case 2:
 		System.out.print("Digite o ID do aluno para remover a reserva: ");
-        String reservaId = scanner.nextLine();
-		System.out.print("Digite o ID da reserva para remover a reserva: ");
         String alunoID = scanner.nextLine();
+		System.out.print("Digite o ID da reserva para remover a reserva: ");
+        String reservaId = scanner.nextLine();
 
 		System.out.println(proxy.remove(alunoID, reservaId));
 			break;
@@ -82,17 +71,34 @@ public class ReservaCliente {
         System.out.println("4. Sair");
         System.out.print("Opção: ");
 	}
-	
-	public static Date converteData(String date){
-        SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy HH:mm",Locale.ENGLISH);
-            try{
+
+	public static Date converteData(String date) {
+        SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH);
+        formato.setLenient(false);  // Para garantir que a data está realmente no formato esperado
+        try {
+            // Tenta fazer o parsing da data
             Date data = formato.parse(date);
             return data;
-            } catch (ParseException e) {
-             // TODO Auto-generated catch block
-            e.printStackTrace();
-            }
-            return new Date();
+        } catch (ParseException e) {
+            // Caso o formato esteja incorreto, avisa o usuário
+            System.out.println("Erro: A data não está no formato correto (dd/MM/yyyy HH:mm). Tente novamente.");
+            return null; // Retorna null para indicar erro
+        }
+    }
+
+	public static Date solicitarData() {
+        Scanner scanner = new Scanner(System.in);
+        Date data = null;
+
+        // Continua solicitando a data até que seja fornecida uma válida
+        while (data == null) {
+            System.out.println("Insira a data no formato correto (dd/MM/yyyy HH:mm):");
+            String input = scanner.nextLine();
+            data = converteData(input);  // Tenta converter a data
+
+        }
+
+        return data;  // Retorna a data válida
     }
 
 	public static void main(String[] args) {

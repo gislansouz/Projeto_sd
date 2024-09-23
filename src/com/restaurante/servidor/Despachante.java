@@ -3,6 +3,8 @@ package com.restaurante.servidor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import com.google.gson.JsonObject;
+
 public class Despachante {
 
     public String SelecionarEsqueleto(String objetoName, String methodName, String params) throws Exception {

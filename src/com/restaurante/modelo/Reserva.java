@@ -93,8 +93,8 @@ public class Reserva implements Serializable{
         return fileManager.addReserva(this);
     }
 
-    public static String removerReserva(String reservaId) {
-        return fileManager.removeReserva(reservaId);
+    public static String removerReserva(String alunoId,String reservaId) {
+        return fileManager.removeReserva(alunoId,reservaId);
     }
 
     public static String listarReservas(String alunoId) {

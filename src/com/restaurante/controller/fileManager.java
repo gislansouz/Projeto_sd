@@ -19,16 +19,22 @@ package com.restaurante.controller;
         }
         
             public static String addReserva(Reserva reserva) {
+                String[] resultado =listReservas(reserva.getAlunoId()).split("\n");
+                if(resultado.length <3){
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME, true))) {
                     writer.write(reserva.toString());
                     writer.newLine();
                     return "Reserva adicionada com sucesso.";
                 } catch (IOException e) {
+                    
                     return "Erro ao adicionar a reserva: " + e.getMessage();
                 }
+            }else{
+                return "Numero de reservas excedido";
+            }
             }
         
-            public static String removeReserva(String reservaId) {
+            public static String removeReserva(String alunoId,String reservaId) {
                 File file = new File(FILE_NAME);
                 List<Reserva> reservas = new ArrayList<>();
         
@@ -36,7 +42,7 @@ package com.restaurante.controller;
                     String line;
                     while ((line = reader.readLine()) != null) {
                         Reserva reserva = Reserva.fromString(line);
-                        if (!reserva.getReservaId().equals(reservaId)) {
+                        if (!reserva.getReservaId().equals(reservaId)&&!reserva.getAlunoId().equals(alunoId)) {
                             reservas.add(reserva);
                         }
                     }

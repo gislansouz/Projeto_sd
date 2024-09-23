@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 public class UDPClient {
@@ -16,10 +17,15 @@ public class UDPClient {
 	public UDPClient(String serverIP, int port) {
             server_andress=serverIP;
             server_port=port;
+            try {
+                socket = new DatagramSocket();
+            } catch (SocketException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
 	}
 
 	public void sendRequest(String jsonMessage) throws Exception {
-                socket = new DatagramSocket();
                 byte[] sendBuffer = jsonMessage.getBytes();
                 InetAddress serverAddress = InetAddress.getByName(server_andress);
                 DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, serverAddress, server_port);
@@ -33,7 +39,7 @@ public class UDPClient {
                 try {
                     socket.receive(receivePacket);
                 } catch (SocketTimeoutException e) {
-                    System.out.println("Timeout atingido.");
+                    throw e; // Lançar a exceção para ser tratada no método chamador            
                 }
             
             String ResponseData = new String(receivePacket.getData(), 0, receivePacket.getLength());
